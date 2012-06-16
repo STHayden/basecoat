@@ -1,7 +1,4 @@
 <?php
-// Set template for displaying messages
-//Content::$messages->setTemplate(BC_TEMPLATES . 'common/messages.tpl.php');
-
 
 // Configure what type of URL format is in use
 /*
@@ -9,10 +6,11 @@ Links in templates must be updated to match which
 URL format is being used
 If using Apache, this may be a good .htaccess to start with
 
-RewriteEngine On
-RewriteRule ^(css|img|js|files)($|/) - [L]
-RewriteRule ^(.*)$ index.php [QSA,L]
+	RewriteEngine On
+	RewriteRule ^(css|img|js|files|bootstrap)($|/) - [L]
+	RewriteRule ^(.*)$ index.php [QSA,L]
 
+Above example also in file ../www/.htaccess.example
 */
 Config::$use_pretty_urls	= false;
 
@@ -23,7 +21,6 @@ Config::$route_param		= 'page';
 Content::$page->add('sitename', 'Basecoat');
 Content::$page->add('title',Content::$page->sitename . ': ');
 Content::$page->add('lang', 'en', false);
-Content::$messages->setTemplate(BC_TEMPLATES . "common/messages.tpl.php");
 
 /*
  -- Configure default template includes --
@@ -38,6 +35,8 @@ Config::$include_after	= array(
 	'page_header'	=> BC_TEMPLATES . 'common/header.php',
 	'page_footer'	=> BC_TEMPLATES . 'common/footer.php',
 );
+
+Content::$messages->setTemplate(BC_TEMPLATES . 'common/messages.tpl.php');
 
 /******************************************************************************
  * Layouts - Containers for the templates

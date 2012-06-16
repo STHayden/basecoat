@@ -24,18 +24,17 @@
 <?php echo $this->body_top; ?>
 
 <div class="content_main">
+	<ul class="nav nav-tabs">
+	<li class="<?= Core::$current_route == "" ? "active" : ""; ?>"><a href="./">Home</a></li>
+	<li class="<?= Core::$current_route == "configuration" ? "active" : ""; ?>"><a href="./?page=configuration">Configuration</a></li>
+	<li class="<?= Core::$current_route == "routes" ? "active" : ""; ?>"><a href="./?page=routes">Routes</a></li>
+	<li class="<?= Core::$current_route == "content" ? "active" : ""; ?>"><a href="./?page=content">Content/Templates</a></li>
+	<li class="<?= Core::$current_route == "messages" ? "active" : ""; ?>"><a href="./?page=messages">Messaging</a></li>
+	<li class="<?= Core::$current_route == "database" ? "active" : ""; ?>"><a href="./?page=database">Database</a></li>
+	</ul>
+	<?php echo $this->messages; ?>
 
-<ul class="nav nav-tabs">
-<li class="<?= $_REQUEST["page"] == "" ? "active" : ""; ?>"><a href="./">Home</a></li>
-<li class="<?= $_REQUEST["page"] == "configuration" ? "active" : ""; ?>"><a href="?page=configuration">Configuration</a></li>
-<li class="<?= $_REQUEST["page"] == "routes" ? "active" : ""; ?>"><a href="?page=routes">Routes</a></li>
-<li class="<?= $_REQUEST["page"] == "content" ? "active" : ""; ?>"><a href="?page=content">Content/Templates</a></li>
-<li class="<?= $_REQUEST["page"] == "messages" ? "active" : ""; ?>"><a href="?page=messages">Messaging</a></li>
-<li class="<?= $_REQUEST["page"] == "database" ? "active" : ""; ?>"><a href="?page=database">Database</a></li>
-</ul>
-<?php echo $this->messages; ?>
-
-<?php echo $this->body; ?>
+	<?php echo $this->body; ?>
 </div>
 
 <?php echo $this->body_btm; ?>
