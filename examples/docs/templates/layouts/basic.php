@@ -25,7 +25,7 @@
 
 <div class="content_main">
 	<ul class="nav nav-tabs">
-	<li class="<?= Core::$current_route == "" ? "active" : ""; ?>"><a href="./">Home</a></li>
+	<li class="<?= Core::$current_route == "default" ? "active" : ""; ?>"><a href="./">Home</a></li>
 	<li class="<?= Core::$current_route == "configuration" ? "active" : ""; ?>"><a href="./?page=configuration">Configuration</a></li>
 	<li class="<?= Core::$current_route == "routes" ? "active" : ""; ?>"><a href="./?page=routes">Routes</a></li>
 	<li class="<?= Core::$current_route == "content" ? "active" : ""; ?>"><a href="./?page=content">Content/Templates</a></li>
