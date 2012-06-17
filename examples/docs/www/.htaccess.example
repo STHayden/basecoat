@@ -1,0 +1,6 @@
+
+RewriteEngine On
+RewriteRule ^(bootstrap|css|img|js|files)($|/) - [L]
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+

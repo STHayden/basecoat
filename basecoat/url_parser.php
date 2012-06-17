@@ -11,12 +11,18 @@ if ( is_null(Config::$url) ) {
 	Config::$url	= $_SERVER['REQUEST_URI'];
 }
 
+$url_parts = explode("?",Config::$url );
+
 // Check what URL format is in use
 if ( Config::$use_pretty_urls ) {
-	if ( Config::$url=='' ) {
-		//No route specified
-		Core::$run_routes		= array('default');
-
+	if ( $url_parts[0]='' || $url_parts[0]=='/'  ) {
+		// If no route is set check for route_param first for better transition to pretty_urls
+		if ( isset($_GET[Config::$route_param]) && $_GET[Config::$route_param]!='' ) {
+			Core::$run_routes		= explode('.', $_GET[Config::$route_param]);
+		} else {
+			//No route specified
+			Core::$run_routes		= array('default');
+		}
 	} else {
 		// prepend a dummy domain so parse_url works right under all circumstances
 		$url_path				= trim( parse_url('http://localhost'. Config::$url, PHP_URL_PATH), '/');
