@@ -11,6 +11,7 @@ Config::$settings	= new stdClass;
 
 // Setup base class object to hold instances of core classes
 Core::$bc			= new stdClass;
+Core::$db			= new stdClass;
 
 class Config {
 	/**
@@ -140,6 +141,11 @@ class Core {
 	* stdClass object to hold instances of base classes
 	*/
 	static public $bc			= null;
+
+	/**
+	* database object
+	*/
+	static public $db			= null;
 	
 	/**
 	* Variable to hold auth class instance
