@@ -10,8 +10,10 @@ date_default_timezone_set('UTC');
 // Configure database connections
 Config::$settings->db = array(
 	0 => array(
-		'host' => 'localhost', 'db' => 'test', 
-		'username' => 'root', 'password' => 'freeDB', 
+		'host' => 'localhost', 
+		'db' => 'todo', 
+		'username' => 'root', 
+		'password' => 'freeDB', 
 		'label'=>'master'),
 );
 // Specify which config is the master and which slave db server to use.
@@ -36,4 +38,7 @@ if ( Config::$run_env=='dev' ) {
 require_once(BASECOATDIR . 'classes/db.pdo.php');
 
 DB::setServerConfig(Config::$settings->db, Config::$settings->dbmaster_id);
-Core::$bc->db 	= DB::getServerInstance(Config::$settings->dbslave_id);
+Core::$db 		= DB::getServerInstance(Config::$settings->dbslave_id);
+
+require_once(BC_LIB . 'classes/Tasks.class.php');
+Core::$bc->tasks	= new Tasks();
