@@ -1,233 +1,200 @@
-<h2 class="page-header">
-Configuration over Convention
+<h2>
+Overview
 </h2>
-<p>While some frameworks are based around a "naming" convention to work, <?php echo Content::$page->sitename;?> opts for configuration over convention. 
-There is no naming convention to learn where things magically work, but only if named properly.
-<?php echo Content::$page->sitename;?> relies on a base configuration to get started, 
-and then other configuration files are loaded as needed, 
-based on a defined inheritance hierarchy and what is requested.
-</p>
-<p>
-Before initializing the framework, certain paths need to be defined in constants so the framework knows where to look for the required files.
-By configuring specific locations, the overhead of checking multiple include directories is avoided.
-These directories contain the files you create, external to the framework, that the framework loads and processes.
-These files include configuration files, routes, templates and layouts.
-<br />
-<strong>Before loading <code>init.php</code>, define the following constants:</strong>
-<br />
-<ul>
-<li>BC_CONFIGS - configuration directory</li>
-<li>BC_ROUTES - files that map to specific URL requests</li>
-<li>BC_TEMPLATES - template files used by routes to merge data with for output</li>
-<li>BC_LAYOUTS - common page layouts that templates are merge with for output</li>
-</ul>
-</p>
-<p>
-<strong>Optional directives to include in the <code>config.php</code> file:</strong>
-<br />
-<ul>
-<li>Config::$debug - true/<strong>false</strong></li>
-<li>Config::$run_mode - <strong>prod</strong>/dev</li>
-<li>Config::$run_env - web/cli automatically determined by init.php</li>
-<li>Config::$use_pretty_urls - true/<strong>false</strong></li>
-<li>Config::$route_param - page, can be set to anything</li>
-<li>Core::$profiling_enabled - true/<strong>false</strong></li>
-</ul>
 
 <p>
-Below is a typical example of how to define the required constants for <?php echo Content::$page->sitename;?> to use.
-This configuration is valid for the directory structure example from the Home page documentation, and would typically be place in your site index file.
-</p><p>
-<pre>
-// define current working directory as the site directory
-define('SITE_DIR', realpath('../').'/');
-
-define('BC_CONFIGS', SITE_DIR . 'config/');
-define('BC_ROUTES', SITE_DIR . 'routes/');
-define('BC_TEMPLATES', SITE_DIR . 'templates/');
-define('BC_LAYOUTS', BC_TEMPLATES . 'layouts/');
-
-// Load core initialization from the Basecoat Framework directory
-include_once( '../../../basecoat/init.php');
-</pre>
+{{:sitename}} configurations are typically based around associative arrays that assign names to configuration blocks. For example, names are assigned to individual routes and layouts. This allows code to reference items by name, what the name represents can be dynamic based on conditions and events (overloading). This also allows aliasing, where multiple names can be assigned to the same configuration. For example, multi-lingual URLs that all route to the same code.
 </p>
-That is all that is required to load and initialize the <?php echo Content::$page->sitename;?> framework.
-Next we will explain how to create the configuration files and routes to be used by the framework.
 
-
-<h2 class="page-header">
-Configuration Files
-</h2>
 <p>
-A fully configured <?php echo Content::$page->sitename;?> installation requires a total of 2 configuration files.
-One file is the base configuration (config.php) and the other is the web specific configuration (config.web.php).
-Optionally you can also create a config.cli.php file that will be included automatically if in command line mode (i.e. backend scripts).
+{{:sitename}} is an "include" framework. You do not need to build your website "inside" the framework, 
+the framework is loaded by your code by instantiating the {{:sitename}} class. This setup allows multiple websites to be built around a single, common install of the framework.
 </p>
 
-<br />
-<h3>
-config.php
-</h3>
-<p>
-This file is the common configuration file that is loaded regardless of the type of running mode (web, cli).
-<code>config.php</code> will load common classes, like database and services configurations.
-This is an example of what a typical <code>config.php</code> may look like, including configuration for the optional database class bundled with the framework:
-</p>
-<pre>
-// Set default timezone
-date_default_timezone_set('UTC');
-
-// Configure database connections
-Config::$settings->db = array(
-	0 => array(
-		'host' => 'localhost', 'db' => 'default_db', 
-		'username' => 'db_user', 'password' => 'db_password', 
-		'label'=>'master'),
-	1 => array(
-		'host' => 'localhost', 'db' => 'default_db', 
-		'username' => 'db_user', 'password' => 'db_password', 
-		'label'=>'slave1'),
-	2 => array(
-		'host' => 'localhost', 'db' => 'default_db', 
-		'username' => 'db_user', 'password' => 'db_password', 
-		'label'=>'slave2'),
-);
-// Specify which config is the master and which slave db server to use.
-// This example show how to use a random slave when more than one is available
-Config::$settings->dbmaster_id	= 0;
-Config::$settings->dbslave_id	= mt_rand(1,2);
-
-/***
-Once all standard configurations are set, load any overrides based on environment
-***/
-
-//
-// Check what mode we are in, load dev config overrides
-if ( Config::$run_env=='dev' ) {
-	Core::$profiling_enabled	= true;
-	if ( file_exists(BC_CONFIGS . 'config.dev.php') ) {
-		require_once(BC_CONFIGS . 'config.dev.php');
-	}
-}
-
-// Load and initialize the database class
-require_once(BASECOATDIR . 'classes/db.pdo.php');
-
-DB::setServerConfig(Config::$settings->db, Config::$settings->dbmaster_id);
-Core::$bc->db 	= DB::getServerInstance(Config::$settings->dbslave_id);
-</pre>
-
-<br />
-<h3>
-config.web.php
-</h3>
-This is the core web configuration file which contains web specific settings, most importantly the routing map.
-This file is loaded by the <code>router.php</code> file and defines the request routing paths.
-Default routes, layouts and includes are defined here.
-The "routes" configuration array defines which files handle which requests and what layout and templates should be used for the route.
-</p>
-<p>
-Refer to the section on Routes for a detailed explanation on how to setup this file.
-</p>
-
-<br />
-<h3>
-URL Structure &amp; Mapping
-</h3>
-<p>
-Keeping flexibility in mind, parameter based URLs or server side URL rewrite rules can be used. 
-You don't have to choose one over the other, the framework can toggle between them by just changing the value of a variable.
-This allows development using URL parameters and production using URL rewrite rules.
-</p>
-<p>
 <br />
 <h4>
-Parameter Based URLs
+File/Folder Structure
 </h4>
-The default URL parameter that specifies the routes is called "page". 
-This is configureable in <code>config.web.php</code> by the variable <code>Config::$route_param</code>.
-Multiple routes/subroutes can be specified by separating the route names with periods.
+<pre class="pre-scrollable">
+/basecoat
+	basecoat.php
+	/classes
+		content.class.php
+		routing.class.php
+		db.pdo.php
+	/templates
+		messages.tpl.php
+	
+/your_site
+</pre>
+
+<h2>
+Initialization
+</h2>
+<p>
+Initializing {{:sitename}} is done by creating and instance of the core {{:sitename}} class. Most implementations will then configure the following:
+<ol>
+<li>Configure Layouts and set default layout<br />
+<code>$basecoat->view->setLayouts( array );</code><br />
+<code>$basecoat->view->setLayout('layout ID');</code>
+</li>
+<li>Set the Template directory path<br />
+<code>$basecoat->view->setTemplatesPath('templates/path');</code>
+</li>
+<li>Configure the Routes<br />
+<code>$basecoat->routing->setRoutes( array );</code>
+</li>
+</ol>
+</p>
+
+
 <br />
-For example, to specify the configuration route and the settings subroute:
+<h4>
+URL Structure
+</h4>
+<p>
+Typically web sites use mod_rewrite or something similar to create friendly/pretty URLs, instead of using URL parameters.
+Since some websites may be hosted in a shared hosting environment, or have complex development environments where rewrite rules aren't available, the framework can be used in either mode. 
+Switching modes does not require extensive code changes, just a configuration toggle, so it's possible to develop using URL parameters and switch to using "pretty" urls in production. 
+<br />
+<pre>
+$basecoat->routing->set('use_pretty_urls', true);
+$basecoat->routing->set('route_param', 'page');
+</pre>
+</p>
+<p>
+The default route parameter is <code>page</code>, but is configureable to be anything. Multiple routes can be specified by using <code>.</code> as the delimiter.
+<p>
+Example of parameter based URL with multiple routes specified:
 <pre>
 http://hostname.com/?page=configuration.settings
 </pre>
-</p>
 
-<p>
-<br />
-<h4>
-Rewrite Based URLs
-</h4>
-To specify the same configuration route and settings subroute, use the / character in the URL.
-<br />
-For example:
+Example of mod_rewrite based URL with multiple routes specified. Note: an ending / is optional and does not affect processing:
 <pre>
 http://hostname.com/configuration/settings
 </pre>
+
 </p>
-<br />
-<h4>
-URL Mapping
-</h4>
+
+<h2>
+Configuration Options
+</h2>
+{{:sitename}} configures some default settings, but also supports registering any name/value pair as a setting. This allows you to centralize  your site settings in {{:sitename}}. In general, {{:sitename}} variables and setting are public to allow you to do as you please. {{:sitename}} does not try to protect you from yourself.
 <p>
-Once the URL is parsed, and the requested route is determined, the route list is checked. 
-If there is no matching route found, the /templates/static directory will be checked for a matching file.
-The .html suffix will be appended to the requested route, and a file check will be performed.
-If a matching file is found, it will be loaded under the default html route and framed in the layout specified for the html route.
-This behavior allows you to open up the /templates/static directory to designers, marketing or other groups 
-for creating basic, static html pages without granting access to code and possibly "breaking the site".
+<dt>$basecoat->setTemplatesPath();</dt>
+<dd>The root directory where the View controller will look for template files. This value prefixes each template specified in the route configuration.
+</dd>
+
+<dt>$basecoat->headers( array );</dt>
+<dd>Array of name/value pairs to output as headers. Defaults listed below.
+<br />
+<code>Content-type:</code> text/html; charset=UTF-8<br/>
+<code>X-Powered-By:</code> Basecoat PHP framework
+</dd>
+
 </p>
+
 <p>
-All of the code for parsing the URL and setting up the routes is contained in the <code>url_parser.php</code> file.
-If you require your own special URL setup, you can modify it, or load your own file, to fit your needs without having to
-make extensive changes to the framework code.
+<dt>$basecoat->view;</dt>
+<dd>Primary instance of the View controller. In general, it will be this instance that all other instances of the View controller are merged into.
+</dd>
+
+<dt>$basecoat->routing;</dt>
+<dd>Primary instance of the Routing controller. If you want to replace the one that comes with {{:sitename}}, load your own instance into this variable.
+</dd>
+
+<dt>$basecoat->routing->set('name', 'value');</dt>
+<dd>Name/value pair settings, add your own in addition to the defaults shown below.
 <br />
-<strong>Variables available after parsing:</strong>
-<br />
+<code>use_pretty_urls:</code> default <b>true</b>. Whether to use mod_rewrite or parameter based routing<br />
+<code>route_param:</code> default <b>page</b>. Routing parameter name if using parameter based routing<br />
+<code>profiling:</code> default <b>false</b>. Enable/Disable route profiling.<br />
+</dd>
+
+</p>
+
+<h2>
+Route Configuration
+</h2>
+<p>
+Routes are configured by declaring an associative array of named routes. The array key is used to map the route name to the route configuration and route meta data. The route name  is used to perform an indexed lookup for the proper route to run. This provides a very fast, scalable route processing architecture. Each route has an array of configuration information associated with it that is used to determine how to process the route. Each route can have a function, an include file, or both, associated with it to perform the route processing. Defined route configuration options are as follows:
+
 <ul>
-<li>Core::$run_routes - list of routes to run</li>
-<li>Core::$current_route - current/first route being run, changes as routes are processed</li>
-<li>Core::$requested_route - original/first route requested to be run</li>
+<li><b>function</b> (function) a callable function (i.e. anonymous function) to execute for processing</li>
+<li><b>file</b> (string) valid include path and file to load to process the route</li>
+<li><b>template</b> (string) a valid file name in the templates directory. This parameter is used internally by {{:sitename}} for special processing (i.e. servicing static files).
+<li><b>require_secure</b> (integer) automatically redirect the user to the secure version of the URL requested</li>
+<li><b>cacheable</b> (array) provides a way of declaring that a route is cacheable and how to cache.
+	<ul>
+	<li><b>expires</b> (string) a valid <code>strtotime</code> string indicating how long to cache the content for. Currently only adds cache headers to the output.</li>
+	</ul>
+<li><b>layout</b> (string) name of the layout to use for rendering. Must map to a layout in the defined layouts list.</li>
 </ul>
 
+<pre>
+// Example route configuration array
+$routes = array(
+	'/' => array(
+		'file' => '/path/to/route_file.php',
+		'template' => 'index_tpl.php',
+	),
+	'example' => array(
+		'file' => '/path/to/example_route.php',
+		'template' => 'route_tpl.php',
+		'require_secure' => 1,
+	),
+	'static' => array(
+		'file' => '/path/to/static_route.php',
+		'cacheable' => array(
+			'expires' => '1 hour'
+		)
+	),
+	'not_found' => array(
+		'file' => '/path/to/404_route.php',
+		'template' => '404_tpl.php',
+	),
+
+);
+</pre>
 </p>
 
-<br />
-<h3>
+<h4>Aliases</h4>
+<p>
+Since the route configuration is just an associative array, configuring multiple names for the same route is very simple. This is helpful when you have multiple URLs that load the same or very similar content. The same route configuration can be assigned aliases. The route itself could then check which name it was loaded under and adjust it's behavior accordingly.
+<pre>
+$routes['alias_name'] =& $routes['example'];
+$routes['seo_name'] =& $routes['example'];
+</pre>
+</p>
+
+<h4>Meta Data</h4>
+<p>
+{{:sitename}} has some predefined route parameters that it checks for, but you can add any meta data as additional array items. This extra meta data can then be referenced by the routes. For example, a <code>require_login</code> meta data item can be configure and a processing hook (next section) can be configure to check for this parameter before allowing route execution. Another example is specifying a canonical URL to support looking up URLs for other routes to support redirects.
+</p>
+
+<h2>
 Processing Hooks
-</h3>
+</h2>
 <p>
-There are 3 processing hooks available for including files at various points of processing.
-Hooks are available for before routes are run, templates to include after all routes are run, and after page output.
-</p>
-<br />
-<h4>
-Config::$include_before
-</h4>
-<p>
-This array contains a list of files that should be included before any routes are run.
-Typically some logic would be placed in the config.web.php file to determine what additional files should be included.
-For example, if running and A/B test, a user's bucket can be determined the appropriate files an be included that would override default route settings, templates, etc.
-</p>
-
-<br />
-<h4>
-Config::$include_before
-</h4>
-<p>
-Template files to load after all routes have been run.
-Typically these will be common header, footer, navigation, etc.
-Routes can modified and/or override this list to alter final output.
-</p>
-
-<br />
-<h4>
-Config::$include_after_output
-</h4>
-<p>
-This array contains a list of files that should be included after page output.
-Since the page output has been completely, this can be longer running processes that would normal delay page delivery.
-Typically and logging would be registered to occur here.
+There are 4 processing hooks available for running custom code at various points of processing. Hooks are added by passing a callable function to the appropriate method. Multiple functions per hook is supported. All hooks for a specific processing point can be cleared by calling the appropriate clear method.
+<ol>
+<li>Before processing of each route<br />
+<dt>$basecoat->routing->addBeforeEach( function );</dt>
+<dt>$basecoat->routing->clearBeforeEach();</dt><br />
+</li>
+<li>After processing of each route<br />
+<dt>$basecoat->routing->addAfterEach( function );</dt>
+<dt>$basecoat->routing->clearAfterEach();</dt><br />
+</li>
+<li>Before rendering of content for output<br />
+<dt>$basecoat->addBeforeRender( function );</dt>
+<dt>$basecoat->clearBeforeRender();</dt><br />
+</li>
+<li>After rendering of content for output<br />
+<dt>$basecoat->addAfterRender( function );</dt>
+<dt>$basecoat->clearAfterRender();</dt><br />
+</li>
+</ol>
 </p>
 <br />

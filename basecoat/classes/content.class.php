@@ -1,24 +1,19 @@
 <?php
+namespace Basecoat;
+
 /**
 * Provides template processing functionality
 *
 * @author Brent Baisley <brent@bigstockphoto.com>
 */
-class Content {
+class View {
 	/**
 	* Layout template to use
 	*/
-	public static $layout	= null;
+	public $layouts	= array();
+	public $layout	= null;
 	
-	/**
-	* Default instance of Content class for final output
-	*/
-	public static $page		= null;
-	
-	/**
-	* Default instance of Messages class
-	*/
-	public static $messages	= null;
+	public $templates_path	= null;
 	
 	/**
 	* Namespace to place content in if none is specified
@@ -29,6 +24,14 @@ class Content {
 	* Name/value pairing of data tags available to templates
 	*/
 	public $data			= array();
+	
+	/**
+	* Regular expression to use to parse out block tags
+	* Default block tag structure is:
+	*   @block_name
+	*
+	*/
+	public $block_tag_regex	= '/^@(\S+)>[\r\n]/m';
 	
 	/**
 	* Content "blocks" in template files
@@ -53,6 +56,52 @@ class Content {
 	public function __construct() {
 	}
 	
+	/*
+	* Load the list of layouts. An associative array where the key is the layout name 
+	* and the value is the relative path to the layout file from the templates directory. 
+	* Optionally pass name of default layout.
+	*
+	* @param Array $layouts associative array of layouts names and relative paths
+	* @param String $default name of layout to set as default
+	*/
+	public function setLayouts($layouts, $default=null) {
+		$this->layouts	= $layouts;
+		if ( !is_null($default) ) {
+			$this->setLayout($default);
+		}
+	}
+	
+	/*
+	* Set the layout to use for output. Name must match one set with setLayouts().
+	*
+	* @param String @layout_name name of layout
+	*/
+	public function setLayout($layout_name) {
+		$this->layout	= $layout_name;
+	}
+	
+	/*
+	* Get the relative path to a layout file. Default is layout set with setLayout().
+	*
+	* @param String $layout_name name of layout
+	* @return String path to layout file relative  to templates path
+	*/
+	public function getLayout($layout_name=null) {
+		if (is_null($layout_name)) {
+			$layout_name	= $this->layout;
+		}
+		return $this->layouts[$layout_name];
+	}
+	
+	/**
+	* Path to templates directory. Use as a prefix when referencing templates and layouts.
+	*
+	* @param String $path valid directory path
+	*/
+	public function setTemplatesPath($path) {
+		$this->templates_path	= $path;
+	}
+	
 	/**
 	* Getter method for returning a data item
 	*
@@ -73,7 +122,7 @@ class Content {
 	public function __toString() {
 		echo implode("\n", $this->data);
 	}
-	
+
 	/**
 	* Add content under the namespace
 	* By default append to any existing data item with same namespace
@@ -112,7 +161,7 @@ class Content {
 	* @param String $tpl template text to search and replace data tags on
 	* @return String the processed template with data tags replaced
 	*/
-	public function replaceDataTags($tpl) {
+	public function replaceDataTags(&$tpl) {
 		if ( !$this->enable_data_tags ) { 
 			return $tpl;
 		}
@@ -121,19 +170,32 @@ class Content {
 			$makeTags	= function(&$tag, $key, $tag_wrap) {
 				$tag	= $tag_wrap['prefix'].$tag.$tag_wrap['suffix'];
 			};
-			$tag_keys	= array_keys($this->data);
+			// Extract scalar variable
+			$data_tags = array();
+			foreach($this->data as $k=>$v) {
+				if ( is_scalar($v) ) {
+					$data_tags[$k] = $v;
+				}
+			}
+			$tag_keys	= array_keys($data_tags);
 			array_walk($tag_keys, $makeTags, $this->data_tags_delimiters);
 			// search and replace data tags
-			$tpl		= str_replace($tag_keys, $this->data, $tpl);
+			$tpl		= str_replace($tag_keys, $data_tags, $tpl);
 		}
 		// cleanup any lingering tags
-		$tpl	= preg_replace('/{{:.[^}}]+}}/', '', $tpl);
-		return $tpl;
+		//$this->stripDataTags($tpl);
+		//$tpl	= preg_replace('/{{:.[^}}]+}}/', '', $tpl);
+		//return $tpl;
 		
 	}
 	
+	public function stripDataTags(&$tpl) {
+		$tpl	= preg_replace('/{{:.[^}}]+}}/', '', $tpl);
+		//return $tpl;		
+	}
+	
 	/**
-	* Add a content block under a specify namespace
+	* Add a content block under a specified namespace
 	*
 	* @param String $block_name namespace to add content block under
 	* @param String $content content to add
@@ -155,13 +217,16 @@ class Content {
 	* @return String the processed template or the number of content blocks parsed
 	*/
 	public function processTemplate($tpl, $parse=true) {
+		if ( file_exists($this->templates_path . $tpl) ) {
+			$tpl	= $this->templates_path . $tpl;
+		}
 		if ( !file_exists($tpl) ) {
 			return -1;
 		}
 		ob_start();
 		include($tpl);
 		$content	= ob_get_clean();
-		$content	= $this->replaceDataTags($content);
+		$this->replaceDataTags($content);
 		if ( $parse ) {
 			return $this->parseBlocks($content);
 		} else {
@@ -177,8 +242,7 @@ class Content {
 	* @return Integer number of content blocks discovered
 	*/
 	public function parseBlocks($tpl) {
-		//$tpl_blocks	= preg_split('/^@(\\S+)>$/m', $tpl, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-		$tpl_blocks	= preg_split('/^@(\\S+)>[\r\n]/m', $tpl, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+		$tpl_blocks		= preg_split($this->block_tag_regex, ltrim($tpl), -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
 		$blocks_parsed	= count($tpl_blocks);
 		if ( 1 == $blocks_parsed ) {
 			$this->addBlock($this->default_namespace, $tpl_blocks[0]);
@@ -230,12 +294,12 @@ class Content {
 	}
 	
 	/**
-	* Merge content blocks for this instance with master instance
+	* Merge content blocks for this instance with passed instance
 	*
 	* @return Integer number of content blocks merged
 	*/
-	public function addToPage() {
-		self::$page->multiadd($this->blocks);
+	public function addToView($view) {
+		$view->multiadd($this->blocks);
 		return count($this->blocks);
 	}
 	
@@ -338,7 +402,7 @@ class Messages {
 	* @param Boolean $clear clear messages after added to output
 	* @return Integer number of messages added to output
 	*/
-	public function display($clear=true) {
+	public function display($view, $clear=true) {
 		if ( !isset($_SESSION['messages']) ) {
 			return 0;
 		}
@@ -347,10 +411,11 @@ class Messages {
 			$msg_count	+=count($msgs);
 		}
 		if ( $msg_count>0 ) {
-			$content	= new Content();
+			$content	= new View();
+			$content->enable_data_tags	= false;
 			$content->multiadd($_SESSION['messages'], 'msg_');
 			$msg_out	= $content->processTemplate($this->tpl_file);
-			$content->addToPage();
+			$content->addToView($view);
 			if ( $clear ) {
 				$this->clear();
 			}

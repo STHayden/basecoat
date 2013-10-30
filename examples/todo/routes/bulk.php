@@ -1,11 +1,13 @@
 <?php
-$content	= new Content();
+global $tasks;
+
+$content = new \Basecoat\View();
 
 // Check if we are adding or deleting
 if ( isset($_POST['delete']) ) {
-	$dresult	= Core::$db->delete('tasks', 'task LIKE :task_filter', array('task_filter'=>'Carpe Diem:%'));
+	$dresult	= $basecoat->db->delete('tasks', 'task LIKE :task_filter', array('task_filter'=>'Carpe Diem:%'));
 	$bulk_message	= $dresult . ' tasks deleted.';
-	Content::$messages->error($bulk_message);
+	$basecoat->messages->error($bulk_message);
 
 } else {
 
@@ -16,8 +18,8 @@ if ( isset($_POST['delete']) ) {
 			'task'			=> 'Carpe Diem: ' . date('l', strtotime('-'.$i.' days')),
 			'description'	=> 'Seize the day!  ...or is it Carp is the Fish of the Day?',
 			'due_date'		=> date('Y-m-d', strtotime('-'.$i.' days')),
-			'status_id'		=> Core::$bc->tasks->default_status_id,
-			'category_id'	=> Core::$bc->tasks->default_category_id,
+			'status_id'		=> $tasks->default_status_id,
+			'category_id'	=> $tasks->default_category_id,
 			'created_on'	=> date('Y-m-d')
 		);
 	}
@@ -27,22 +29,22 @@ if ( isset($_POST['delete']) ) {
 			'task'			=> 'Carpe Diem: ' . date('l', strtotime('+'.$i.' days')),
 			'description'	=> 'Seize the day!  ...or is it Carp is the Fish of the Day?',
 			'due_date'		=> date('Y-m-d', strtotime('+'.$i.' days')),
-			'status_id'		=> Core::$bc->tasks->default_status_id,
-			'category_id'	=> Core::$bc->tasks->default_category_id,
+			'status_id'		=> $tasks->default_status_id,
+			'category_id'	=> $tasks->default_category_id,
 			'created_on'	=> date('Y-m-d')
 		);
 	}
 	
-	$iresult		= Core::$bc->tasks->save($bulk_insert);
+	$iresult		= $tasks->save($bulk_insert);
 	$bulk_message	= $iresult.' tasks added.';
 	$content->add('bulk_insert', $bulk_insert);
-	Content::$messages->info($bulk_message);
+	$basecoat->messages->info($bulk_message);
 
 }
 
 
 
 // Add route content to page
-$content->processTemplate(Config::$routes[Core::$current_route]['template']);
-$content->addToPage();
+$content->processTemplate($basecoat->view->templates_path . $basecoat->routing->current['template']);
+$content->addToView($basecoat->view);
 unset($content);

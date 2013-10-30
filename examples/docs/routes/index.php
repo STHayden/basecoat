@@ -1,9 +1,13 @@
 <?php
-Content::$page->add('title', 'Introduction');
 
-$content	= new Content();
+$basecoat->view->add('title', 'Introduction');
+
+$content = new \Basecoat\View();
 
 // Add route content to page
-$content->processTemplate(Config::$routes[Core::$current_route]['template']);
-$content->addToPage();
+$content->processTemplate($basecoat->view->templates_path . $basecoat->routing->current['template']);
+$content->addToView($basecoat->view);
+
 unset($content);
+
+$basecoat->routing->runNext();
